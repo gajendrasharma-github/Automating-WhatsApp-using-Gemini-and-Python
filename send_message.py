@@ -1,9 +1,10 @@
 import google.generativeai as genai
 
-genai.configure(api_key="AIzaSyCwrvmEfPcheS5Hnx0nyjb_NN-AOFWHBc4")
+genai.configure(api_key="you can put your own api key here")
+
 
 def generate_message(name, description, task):
-    prompt = f"""
+    prompt = f'''
     You are an empathetic WhatsApp assistant. Craft a personalized message to {name} for the task "{task}". 
     Make it personalized using their trait and description which is: "{description}"
 
@@ -12,12 +13,13 @@ def generate_message(name, description, task):
 
     If content is lengthy, break sentences and give a line space to ensure maximum readability. Most of them will read on mobile.
     So make sure it is not a single paragraph but a well formatted one. 
+        
     NOTE: 1. Just give the description. No other stuffs like "Here's your response"  or " Do you want me to do anything else" etc.
     2. Use simple english. The work should be communicated well not the jargon.
     3. Also, use a mix of English and Hindi. Eg: Socha Tumhe project ke bare me bata dun. So I am working on a project"
     4. Don't be too clingy.
-    5. 
-    """
+
+    '''
     model = genai.GenerativeModel("gemini-2.0-flash")
     response = model.generate_content(prompt)
     return response.text.strip()
@@ -26,7 +28,7 @@ def generate_message(name, description, task):
 
 import gspread
 
-gc = gspread.service_account(filename="whatsapp-messaging-459906-3d0ec47541e9.json")
+gc = gspread.service_account(filename="whatsapp-messaging.json")
 sheet = gc.open("Contacts").sheet1
 data = sheet.get_all_records()
 
@@ -48,17 +50,17 @@ for index, row in enumerate(data):
     number = "+91" + str(row["Number"])
     description = row["Description"]
 
-    # Generate personalized message from Gemini
+    
     message = generate_message(name, description, task)
     print(f"\n📤 Sending to {name}: \n{message}\n")
 
-    # Schedule each 1 min apart
+    
     send_time = base_time + datetime.timedelta(minutes=index)
     hour = send_time.hour
     minute = send_time.minute
 
     try:
         kit.sendwhatmsg(number, message, hour, minute, wait_time=15, tab_close=True)
-        print(f"✅ Successfully scheduled for {name}")
+        print(f" Successfully scheduled for {name}")
     except Exception as e:
-        print(f"❌ Error sending to {name}: {e}")
+        print(f" Error sending to {name}: {e}")
